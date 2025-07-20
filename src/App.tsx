@@ -9,10 +9,12 @@ import InternDashboard from './components/InternDashboard';
 import ProjectSubmission from './components/ProjectSubmission';
 import InternPersonalDashboard from './components/InternPersonalDashboard';
 import LandingPage from './components/LandingPage';
+import ReviewApplications from './components/ReviewApplications';
+import MentorDashboard from './components/MentorDashboard';
 
 interface User {
   empId: string;
-  role: 'employee' | 'ld_team' | 'intern';
+  role: 'employee' | 'ld_team' | 'intern' | 'mentor';
   name: string;
 }
 
@@ -62,10 +64,15 @@ function App() {
     ] : []),
     ...(user.role === 'ld_team' ? [
       { id: 'add-intern', label: 'Add Intern Details', icon: Users },
+      { id: 'review-applications', label: 'Review Applications', icon: ClipboardList },
       { id: 'departments', label: 'Departments & Mentors', icon: ClipboardList },
       { id: 'track', label: 'Track Application', icon: BarChart3 },
       { id: 'dashboard', label: 'Intern Dashboard', icon: FileText },
       { id: 'project-submission', label: 'Project Submission', icon: Upload },
+    ] : []),
+    ...(user.role === 'mentor' ? [
+      { id: 'mentor-dashboard', label: 'Intern Dashboard', icon: Users },
+      { id: 'mentor-projects', label: 'Submitted Projects', icon: FileText },
     ] : []),
   ];
 
@@ -75,6 +82,8 @@ function App() {
         return <Homepage user={user} />;
       case 'add-intern':
         return <AddInternDetails user={user} />;
+      case 'review-applications':
+        return user.role === 'ld_team' ? <ReviewApplications /> : <Homepage user={user} />;
       case 'departments':
         return user.role === 'ld_team' ? <DepartmentsMentors /> : <Homepage user={user} />;
       case 'track':
@@ -85,6 +94,10 @@ function App() {
         return (user.role === 'ld_team' || user.role === 'intern') ? <ProjectSubmission user={user} /> : <Homepage user={user} />;
       case 'intern-dashboard':
         return user.role === 'intern' ? <InternPersonalDashboard user={user} /> : <Homepage user={user} />;
+      case 'mentor-dashboard':
+        return user.role === 'mentor' ? <MentorDashboard user={user} activeTab="dashboard" /> : <Homepage user={user} />;
+      case 'mentor-projects':
+        return user.role === 'mentor' ? <MentorDashboard user={user} activeTab="projects" /> : <Homepage user={user} />;
       default:
         return <Homepage user={user} />;
     }
@@ -107,7 +120,7 @@ function App() {
               <div className="text-right">
                 <p className="text-sm text-blue-200">Welcome, {user.name}</p>
                 <p className="text-xs text-blue-300">
-                  {user.role === 'ld_team' ? 'L&D Team Member' : user.role === 'intern' ? 'Intern' : 'Employee'} • {user.empId}
+                  {user.role === 'ld_team' ? 'L&D Team Member' : user.role === 'intern' ? 'Intern' : user.role === 'mentor' ? 'Mentor' : 'Employee'} • {user.empId}
                 </p>
               </div>
               <button

@@ -39,7 +39,7 @@ interface Meeting {
 
 interface User {
   empId: string;
-  role: 'employee' | 'ld_team' | 'intern';
+  role: 'employee' | 'ld_team' | 'intern' | 'mentor';
   name: string;
 }
 

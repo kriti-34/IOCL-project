@@ -7,7 +7,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
-  const [selectedRole, setSelectedRole] = useState<'intern' | 'employee' | 'admin'>('employee');
+  const [selectedRole, setSelectedRole] = useState<'intern' | 'employee' | 'admin' | 'mentor'>('employee');
   const [credentials, setCredentials] = useState({
     empId: '',
     password: '',
@@ -32,6 +32,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
     { empId: 'IOCL-123456', password: 'intern123', role: 'intern' as const, name: 'Rahul Sharma' },
     { empId: 'IOCL-123457', password: 'intern123', role: 'intern' as const, name: 'Priya Patel' },
     { empId: 'IOCL-123458', password: 'intern123', role: 'intern' as const, name: 'Amit Singh' },
+    
+    // Mentors
+    { empId: 'MENTOR001', password: 'mentor123', role: 'mentor' as const, name: 'Dr. Rajesh Kumar' },
+    { empId: 'MENTOR002', password: 'mentor123', role: 'mentor' as const, name: 'Ms. Priya Sharma' },
+    { empId: 'MENTOR003', password: 'mentor123', role: 'mentor' as const, name: 'Mr. Amit Patel' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,6 +55,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
       filteredUsers = users.filter(u => u.role === 'employee');
     } else if (selectedRole === 'admin') {
       filteredUsers = users.filter(u => u.role === 'ld_team');
+    } else if (selectedRole === 'mentor') {
+      filteredUsers = users.filter(u => u.role === 'mentor');
     }
 
     const user = filteredUsers.find(u => u.empId === credentials.empId && u.password === credentials.password);
@@ -57,11 +64,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
     if (user) {
       onLogin({
         empId: user.empId,
-        role: user.role,
+        role: user.role as 'employee' | 'ld_team' | 'intern' | 'mentor',
         name: user.name
       });
     } else {
-      setError(`Invalid ${selectedRole === 'admin' ? 'Admin' : selectedRole === 'intern' ? 'Intern' : 'Employee'} ID or Password`);
+      setError(`Invalid ${selectedRole === 'admin' ? 'Admin' : selectedRole === 'mentor' ? 'Mentor' : selectedRole === 'intern' ? 'Intern' : 'Employee'} ID or Password`);
     }
 
     setIsLoading(false);
@@ -147,6 +154,17 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
               >
                 Admin
               </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('mentor')}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  selectedRole === 'mentor'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Mentor
+              </button>
             </div>
           </div>
 
@@ -166,7 +184,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
                   placeholder={
                     selectedRole === 'intern' ? 'Enter Intern ID (e.g., IOCL-123456)' :
                     selectedRole === 'employee' ? 'Enter Employee ID (e.g., EMP001)' :
-                    'Enter Admin ID (e.g., IOCLAdmin)'
+                    selectedRole === 'admin' ? 'Enter Admin ID (e.g., IOCLAdmin)' :
+                    'Enter Mentor ID (e.g., MENTOR001)'
                   }
                   required
                 />
@@ -236,6 +255,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
                 <div className="bg-gray-50 p-2 rounded">
                   <p><strong>Intern:</strong> IOCL-123456 / intern123</p>
                   <p><strong>Intern:</strong> IOCL-123457 / intern123</p>
+                </div>
+              )}
+              {selectedRole === 'mentor' && (
+                <div className="bg-gray-50 p-2 rounded">
+                  <p><strong>Mentor:</strong> MENTOR001 / mentor123</p>
+                  <p><strong>Mentor:</strong> MENTOR002 / mentor123</p>
                 </div>
               )}
             </div>

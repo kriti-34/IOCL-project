@@ -16,7 +16,7 @@ interface Application {
 interface TrackApplicationProps {
   user?: {
     empId: string;
-    role: 'employee' | 'ld_team' | 'intern';
+    role: 'employee' | 'ld_team' | 'intern' | 'mentor';
     name: string;
   };
 }

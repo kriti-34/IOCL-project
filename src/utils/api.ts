@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 
 export interface User {
   empId: string;
-  role: 'employee' | 'ld_team' | 'intern';
+  role: 'employee' | 'ld_team' | 'intern' | 'mentor';
   name: string;
   email?: string;
   department?: string;
@@ -166,6 +166,11 @@ export const authAPI = {
       { empId: 'IOCL-123456', password: 'intern123', role: 'intern', name: 'Rahul Sharma' },
       { empId: 'IOCL-123457', password: 'intern123', role: 'intern', name: 'Priya Patel' },
       { empId: 'IOCL-123458', password: 'intern123', role: 'intern', name: 'Amit Singh' },
+      
+      // Mentors
+      { empId: 'MENTOR001', password: 'mentor123', role: 'mentor', name: 'Dr. Rajesh Kumar' },
+      { empId: 'MENTOR002', password: 'mentor123', role: 'mentor', name: 'Ms. Priya Sharma' },
+      { empId: 'MENTOR003', password: 'mentor123', role: 'mentor', name: 'Mr. Amit Patel' },
     ];
 
     // Simulate API delay
@@ -214,6 +219,9 @@ export const authAPI = {
         { empId: 'IOCL-123456', role: 'intern', name: 'Rahul Sharma' },
         { empId: 'IOCL-123457', role: 'intern', name: 'Priya Patel' },
         { empId: 'IOCL-123458', role: 'intern', name: 'Amit Singh' },
+        { empId: 'MENTOR001', role: 'mentor', name: 'Dr. Rajesh Kumar' },
+        { empId: 'MENTOR002', role: 'mentor', name: 'Ms. Priya Sharma' },
+        { empId: 'MENTOR003', role: 'mentor', name: 'Mr. Amit Patel' },
       ];
 
       const user = demoUsers.find(u => u.empId === empId);
@@ -222,7 +230,7 @@ export const authAPI = {
           success: true,
           data: {
             empId: user.empId,
-            role: user.role as 'employee' | 'ld_team' | 'intern',
+            role: user.role as 'employee' | 'ld_team' | 'intern' | 'mentor',
             name: user.name
           }
         };

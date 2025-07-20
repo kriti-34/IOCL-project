@@ -3,7 +3,7 @@ import { Building2, Target, Users, Award, ChevronRight, Upload } from 'lucide-re
 
 interface User {
   empId: string;
-  role: 'employee' | 'ld_team' | 'intern';
+  role: 'employee' | 'ld_team' | 'intern' | 'mentor';
   name: string;
 }
 
@@ -28,6 +28,8 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
             ? 'As an L&D team member, you have full access to manage intern applications, assign mentors, track progress, and generate certificates.'
             : user.role === 'intern'
             ? 'As an intern, you can submit your project reports and track your internship progress through this portal.'
+            : user.role === 'mentor'
+            ? 'As a mentor, you can manage your assigned interns, assign tasks, provide feedback, and review their project submissions.'
             : 'As an IOCL employee, you can refer potential interns by filling their details in the system. Your referrals will be reviewed by the L&D team.'
           }
         </p>
@@ -65,6 +67,26 @@ const Homepage: React.FC<HomepageProps> = ({ user }) => {
             <li>• Track your project submission status</li>
             <li>• Download completion certificates upon approval</li>
             <li>• View feedback from your assigned mentor</li>
+          </ul>
+        </div>
+      )}
+
+      {user.role === 'mentor' && (
+        <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-lg">
+          <div className="flex items-center space-x-3 mb-4">
+            <Users className="h-6 w-6 text-purple-600" />
+            <h3 className="text-lg font-semibold text-purple-800">Mentor Access</h3>
+          </div>
+          <p className="text-purple-700 mb-4">
+            As a mentor, you have comprehensive access to guide and evaluate your assigned interns:
+          </p>
+          <ul className="text-purple-700 space-y-2">
+            <li>• View and manage all interns assigned to you</li>
+            <li>• Assign tasks and track intern progress</li>
+            <li>• Provide ratings and detailed feedback</li>
+            <li>• Schedule and manage meetings with interns</li>
+            <li>• Review and approve/reject project submissions</li>
+            <li>• Grade completed projects and provide feedback</li>
           </ul>
         </div>
       )}
