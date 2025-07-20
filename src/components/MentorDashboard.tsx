@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, FileText, Plus, Edit, Star, Calendar, CheckCircle, Clock, AlertCircle, Search, MessageCircle } from 'lucide-react';
+import { Users, FileText, Plus, Edit, Star, Calendar, CheckCircle, Clock, AlertCircle, Search, MessageCircle, Eye, Download } from 'lucide-react';
 
 interface User {
   empId: string;
@@ -81,6 +81,8 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<ProjectSubmission | null>(null);
   const [selectedIntern, setSelectedIntern] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -133,10 +135,21 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
       internName: 'Rahul Sharma',
       department: 'Engineering',
       projectTitle: 'Pipeline Safety Analysis System',
-      description: 'Comprehensive analysis of pipeline safety protocols',
+      description: 'Comprehensive analysis of pipeline safety protocols with recommendations for improvement',
       submissionDate: '2025-01-18',
       status: 'Submitted',
       fileUrl: '/reports/pipeline-safety-analysis.pdf'
+    },
+    {
+      id: '2',
+      internId: 'IOCL-123459',
+      internName: 'Neha Gupta',
+      department: 'Engineering',
+      projectTitle: 'Environmental Impact Assessment',
+      description: 'Assessment of environmental impact of refinery operations',
+      submissionDate: '2025-01-19',
+      status: 'Submitted',
+      fileUrl: '/reports/environmental-impact.pdf'
     }
   ]);
 
@@ -232,7 +245,14 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
         ? { ...project, status, feedback, grade }
         : project
     ));
+    setShowProjectModal(false);
+    setSelectedProject(null);
     alert(`Project ${status.toLowerCase()} successfully!`);
+  };
+
+  const handleViewProject = (project: ProjectSubmission) => {
+    setSelectedProject(project);
+    setShowProjectModal(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -288,6 +308,32 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
           <p className="text-green-700">
             Welcome, {user.name}! Manage your assigned interns, track their progress, and review their project submissions.
           </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setCurrentTab('dashboard')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              currentTab === 'dashboard'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Intern Dashboard</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab('projects')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              currentTab === 'projects'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            <span>Submitted Projects</span>
+          </button>
         </div>
 
         {/* Intern Dashboard Tab */}
@@ -381,7 +427,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
               </div>
             </div>
 
-            {/* Task Assignment Form */}
+            {/* Task Assignment Form Modal */}
             {showTaskForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-lg max-w-2xl w-full">
@@ -484,7 +530,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
               </div>
             )}
 
-            {/* Feedback Form */}
+            {/* Feedback Form Modal */}
             {showFeedbackForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-lg max-w-2xl w-full">
@@ -572,7 +618,7 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
               </div>
             )}
 
-            {/* Meeting Form */}
+            {/* Meeting Form Modal */}
             {showMeetingForm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-lg max-w-2xl w-full">
@@ -742,6 +788,13 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleViewProject(submission)}
+                        className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View Project</span>
+                      </button>
                       {submission.status === 'Submitted' && (
                         <>
                           <button
@@ -772,6 +825,83 @@ const MentorDashboard: React.FC<MentorDashboardProps> = ({ user, activeTab }) =>
                 <p className="text-gray-600">No project submissions found.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Project View Modal */}
+        {showProjectModal && selectedProject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">Project Details</h3>
+                  <button
+                    onClick={() => setShowProjectModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <AlertCircle className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-blue-50 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-blue-800 mb-4">Project Information</h4>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p><strong>Title:</strong> {selectedProject.projectTitle}</p>
+                        <p><strong>Intern:</strong> {selectedProject.internName}</p>
+                        <p><strong>ID:</strong> {selectedProject.internId}</p>
+                      </div>
+                      <div>
+                        <p><strong>Department:</strong> {selectedProject.department}</p>
+                        <p><strong>Submitted:</strong> {selectedProject.submissionDate}</p>
+                        <p><strong>Status:</strong> {selectedProject.status}</p>
+                      </div>
+                    </div>
+                    {selectedProject.description && (
+                      <div className="mt-4">
+                        <p><strong>Description:</strong></p>
+                        <p className="text-gray-700 mt-1">{selectedProject.description}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Project File</h4>
+                    <div className="flex items-center space-x-4">
+                      <FileText className="h-8 w-8 text-red-500" />
+                      <div>
+                        <p className="font-medium text-gray-800">Project Report</p>
+                        <p className="text-sm text-gray-600">{selectedProject.fileUrl}</p>
+                      </div>
+                      <button className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
+                        <Download className="h-4 w-4" />
+                        <span>Download</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {selectedProject.status === 'Submitted' && (
+                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                      <button
+                        onClick={() => handleProjectStatusUpdate(selectedProject.id, 'Rejected', 'Project needs improvement. Please revise and resubmit.')}
+                        className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                      >
+                        <AlertCircle className="h-4 w-4" />
+                        <span>Reject Project</span>
+                      </button>
+                      <button
+                        onClick={() => handleProjectStatusUpdate(selectedProject.id, 'Approved', 'Excellent work! Well-structured and comprehensive analysis.', 'A+')}
+                        className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Approve Project</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

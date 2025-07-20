@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardList, Search, Eye, CheckCircle, XCircle, Clock, AlertCircle, User, Mail, Phone, Calendar, MapPin, GraduationCap, Building } from 'lucide-react';
+import { ClipboardList, Search, Eye, CheckCircle, XCircle, User, Mail, Phone, Calendar, MapPin, GraduationCap, Building } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -17,9 +17,7 @@ interface Application {
   address: string;
   referredBy: string;
   referredByEmpId: string;
-  status: 'Submitted' | 'Under Review' | 'Approved' | 'Rejected';
   submittedDate: string;
-  lastUpdated: string;
   documents: {
     photo?: string;
     resume?: string;
@@ -33,7 +31,6 @@ interface Application {
 
 const ReviewApplications: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -54,9 +51,7 @@ const ReviewApplications: React.FC = () => {
       address: 'New Delhi',
       referredBy: 'Rajesh Kumar',
       referredByEmpId: 'EMP001',
-      status: 'Submitted',
       submittedDate: '2025-01-15',
-      lastUpdated: '2025-01-15',
       documents: {
         photo: 'photo.jpg',
         resume: 'resume.pdf',
@@ -82,9 +77,7 @@ const ReviewApplications: React.FC = () => {
       address: 'Surat, Gujarat',
       referredBy: 'Priya Sharma',
       referredByEmpId: 'EMP002',
-      status: 'Under Review',
       submittedDate: '2025-01-16',
-      lastUpdated: '2025-01-17',
       documents: {
         photo: 'photo.jpg',
         resume: 'resume.pdf',
@@ -109,9 +102,7 @@ const ReviewApplications: React.FC = () => {
       address: 'Delhi',
       referredBy: 'Amit Patel',
       referredByEmpId: 'EMP003',
-      status: 'Approved',
       submittedDate: '2025-01-14',
-      lastUpdated: '2025-01-18',
       documents: {
         photo: 'photo.jpg',
         resume: 'resume.pdf',
@@ -124,47 +115,12 @@ const ReviewApplications: React.FC = () => {
     }
   ]);
 
-  const statusOptions = ['All', 'Submitted', 'Under Review', 'Approved', 'Rejected'];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Submitted':
-        return <Clock className="h-4 w-4 text-blue-500" />;
-      case 'Under Review':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'Approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'Rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Submitted':
-        return 'bg-blue-100 text-blue-800';
-      case 'Under Review':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleStatusUpdate = (applicationId: string, newStatus: 'Approved' | 'Rejected' | 'Under Review') => {
-    setApplications(prev => prev.map(app => 
-      app.id === applicationId 
-        ? { ...app, status: newStatus, lastUpdated: new Date().toISOString().split('T')[0] }
-        : app
-    ));
+  const handleStatusUpdate = (applicationId: string, newStatus: 'Approved' | 'Rejected') => {
+    // Remove the application from the review list after decision
+    setApplications(prev => prev.filter(app => app.id !== applicationId));
     setShowModal(false);
     setSelectedApplication(null);
-    alert(`Application ${newStatus.toLowerCase()} successfully!`);
+    alert(`Application ${newStatus.toLowerCase()} successfully! Status will be visible in Track Application section.`);
   };
 
   const filteredApplications = applications.filter(app => {
@@ -172,8 +128,7 @@ const ReviewApplications: React.FC = () => {
                          app.internId.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.referredBy.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = selectedStatus === 'All' || app.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   return (
@@ -186,11 +141,11 @@ const ReviewApplications: React.FC = () => {
 
         <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
           <p className="text-orange-700">
-            Review and verify intern applications submitted by employees. Carefully examine all details and documents before approving or rejecting applications.
+            Review and verify intern applications submitted by employees. Carefully examine all details and documents before approving or rejecting applications. Once reviewed, the status will be reflected in the Track Application section.
           </p>
         </div>
 
-        {/* Search and Filter */}
+        {/* Search */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -202,17 +157,6 @@ const ReviewApplications: React.FC = () => {
               placeholder="Search by name, intern ID, department, or referrer..."
             />
           </div>
-          <div className="sm:w-48">
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {statusOptions.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Applications List */}
@@ -223,10 +167,6 @@ const ReviewApplications: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-800">{application.name}</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full flex items-center space-x-1 ${getStatusColor(application.status)}`}>
-                      {getStatusIcon(application.status)}
-                      <span>{application.status}</span>
-                    </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                     <div>
@@ -255,37 +195,22 @@ const ReviewApplications: React.FC = () => {
                     className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
                   >
                     <Eye className="h-4 w-4" />
-                    <span>Review</span>
+                    <span>View</span>
                   </button>
-                  {application.status === 'Submitted' && (
-                    <>
-                      <button
-                        onClick={() => handleStatusUpdate(application.id, 'Under Review')}
-                        className="flex items-center space-x-1 px-3 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors duration-200"
-                      >
-                        <Clock className="h-4 w-4" />
-                        <span>Review</span>
-                      </button>
-                    </>
-                  )}
-                  {application.status === 'Under Review' && (
-                    <>
-                      <button
-                        onClick={() => handleStatusUpdate(application.id, 'Approved')}
-                        className="flex items-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(application.id, 'Rejected')}
-                        className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        <span>Reject</span>
-                      </button>
-                    </>
-                  )}
+                  <button
+                    onClick={() => handleStatusUpdate(application.id, 'Approved')}
+                    className="flex items-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Accept</span>
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(application.id, 'Rejected')}
+                    className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    <span>Reject</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -295,7 +220,7 @@ const ReviewApplications: React.FC = () => {
         {filteredApplications.length === 0 && (
           <div className="text-center py-8">
             <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No applications found matching your criteria.</p>
+            <p className="text-gray-600">No applications found for review.</p>
           </div>
         )}
 
@@ -387,24 +312,22 @@ const ReviewApplications: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  {selectedApplication.status === 'Under Review' && (
-                    <div className="flex justify-end space-x-4 pt-4 border-t">
-                      <button
-                        onClick={() => handleStatusUpdate(selectedApplication.id, 'Rejected')}
-                        className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        <span>Reject Application</span>
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(selectedApplication.id, 'Approved')}
-                        className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Approve Application</span>
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex justify-end space-x-4 pt-4 border-t">
+                    <button
+                      onClick={() => handleStatusUpdate(selectedApplication.id, 'Rejected')}
+                      className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      <span>Reject Application</span>
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(selectedApplication.id, 'Approved')}
+                      className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Accept Application</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

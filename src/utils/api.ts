@@ -35,7 +35,7 @@ export interface InternApplication {
   address: string;
   referredBy: string;
   referredByEmpId: string;
-  status: 'Submitted' | 'Under Review' | 'Approved' | 'Rejected';
+  status: 'Submitted' | 'Under Review' | 'Approved' | 'Rejected' | 'Pending Review';
   submittedDate: string;
   lastUpdated: string;
   mentor?: string;
@@ -598,10 +598,19 @@ export const projectAPI = {
         projectTitle: 'Pipeline Safety Analysis System',
         description: 'Comprehensive analysis of pipeline safety protocols',
         submissionDate: '2025-01-18',
-        status: 'Approved',
+        status: 'Under Review',
         fileUrl: '/reports/pipeline-safety-analysis.pdf',
-        feedback: 'Excellent work on safety protocols analysis.',
-        grade: 'A+'
+      },
+      {
+        id: '2',
+        internId: 'IOCL-123459',
+        internName: 'Neha Gupta',
+        department: 'Engineering',
+        projectTitle: 'Environmental Impact Assessment',
+        description: 'Assessment of environmental impact of refinery operations',
+        submissionDate: '2025-01-19',
+        status: 'Submitted',
+        fileUrl: '/reports/environmental-impact.pdf'
       }
     ];
 
@@ -711,6 +720,7 @@ export const formatDateTime = (date: string | Date): string => {
 export const getStatusColor = (status: string): string => {
   const statusColors: Record<string, string> = {
     'Submitted': 'bg-blue-100 text-blue-800',
+    'Pending Review': 'bg-gray-100 text-gray-800',
     'Under Review': 'bg-yellow-100 text-yellow-800',
     'Approved': 'bg-green-100 text-green-800',
     'Rejected': 'bg-red-100 text-red-800',
