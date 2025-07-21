@@ -402,7 +402,7 @@ const TrackApplication: React.FC<TrackApplicationProps> = ({ user }) => {
                       className="flex items-center space-x-1 px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-200"
                     >
                       <Download className="h-4 w-4" />
-                      <span>Send Approval Letter</span>
+                      <span>Send Confirmation Letter</span>
                     </button>
                   )}
                 </div>

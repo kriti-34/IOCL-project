@@ -253,7 +253,7 @@ const AddInternDetails: React.FC<AddInternDetailsProps> = ({ user }) => {
 
           {/* Personal Information */}
           <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Personal Information</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Intern's Personal Information</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -357,7 +357,7 @@ const AddInternDetails: React.FC<AddInternDetailsProps> = ({ user }) => {
 
           {/* Academic Information */}
           <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Academic Information</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Intern's Academic Information</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
