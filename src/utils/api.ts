@@ -1,7 +1,8 @@
 // API Configuration and Utilities
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-production-api.com/api' 
-  : 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.MODE === 'production' 
+    ? '/api' 
+    : 'http://localhost:3001/api');
 
 // API Response Types
 export interface ApiResponse<T> {
@@ -58,7 +59,9 @@ export interface Mentor {
   phone: string;
   availability: 'Available' | 'Busy' | 'Unavailable';
   experience: string;
-  mode: 'On-site' | 'Remote' | 'Hybrid';
+  currentInterns: number;
+  maxCapacity: number;
+  internDurations: string[];
 }
 
 export interface Task {
@@ -86,6 +89,7 @@ export interface ProjectSubmission {
   fileUrl?: string;
   feedback?: string;
   grade?: string;
+  mentorId?: string;
 }
 
 export interface Review {
@@ -113,44 +117,158 @@ export interface Meeting {
   agenda?: string;
 }
 
+// In-memory data store for demo purposes
+let applicationStore: InternApplication[] = [
+  {
+    id: '1',
+    internId: 'IOCL-123456',
+    name: 'Rahul Sharma',
+    email: 'rahul.sharma@college.edu',
+    phone: '9876543210',
+    collegeName: 'IIT Delhi',
+    course: 'B.Tech Computer Science',
+    semester: '6th',
+    rollNumber: 'CS2021001',
+    department: 'Engineering',
+    startDate: '2025-01-15',
+    endDate: '2025-03-15',
+    address: 'New Delhi',
+    referredBy: 'Rajesh Kumar',
+    referredByEmpId: 'EMP001',
+    status: 'Submitted',
+    submittedDate: '2025-01-15',
+    lastUpdated: '2025-01-15',
+    documents: {
+      photo: 'photo.jpg',
+      resume: 'resume.pdf',
+      collegeId: 'college_id.pdf',
+      lastSemesterResult: 'result.pdf',
+      noc: 'noc.pdf',
+      idProof: 'aadhar.pdf'
+    }
+  }
+];
+
+let mentorStore: Mentor[] = [
+  {
+    id: '1',
+    name: 'Dr. Rajesh Kumar',
+    department: 'Engineering',
+    email: 'rajesh.kumar@iocl.in',
+    phone: '9876543210',
+    availability: 'Available',
+    experience: '15 years',
+    currentInterns: 2,
+    maxCapacity: 4,
+    internDurations: ['2025-01-15 to 2025-03-15', '2025-01-10 to 2025-03-10']
+  },
+  {
+    id: '2',
+    name: 'Ms. Priya Sharma',
+    department: 'Human Resources',
+    email: 'priya.sharma@iocl.in',
+    phone: '9876543211',
+    availability: 'Busy',
+    experience: '12 years',
+    currentInterns: 3,
+    maxCapacity: 3,
+    internDurations: ['2025-01-05 to 2025-03-05', '2025-01-12 to 2025-03-12', '2025-01-20 to 2025-03-20']
+  },
+  {
+    id: '3',
+    name: 'Mr. Amit Patel',
+    department: 'Information Technology',
+    email: 'amit.patel@iocl.in',
+    phone: '9876543212',
+    availability: 'Available',
+    experience: '10 years',
+    currentInterns: 1,
+    maxCapacity: 5,
+    internDurations: ['2025-01-08 to 2025-03-08']
+  }
+];
+
+let projectStore: ProjectSubmission[] = [
+  {
+    id: '1',
+    internId: 'IOCL-123456',
+    internName: 'Rahul Sharma',
+    department: 'Engineering',
+    projectTitle: 'Pipeline Safety Analysis System',
+    description: 'Comprehensive analysis of pipeline safety protocols with recommendations for improvement',
+    submissionDate: '2025-01-18',
+    status: 'Submitted',
+    fileUrl: '/reports/pipeline-safety-analysis.pdf',
+    mentorId: 'MENTOR001'
+  }
+];
+
+let taskStore: Task[] = [
+  {
+    id: '1',
+    internId: 'IOCL-123456',
+    internName: 'Rahul Sharma',
+    title: 'Pipeline Safety Analysis',
+    description: 'Analyze safety protocols for oil pipeline systems',
+    dueDate: '2025-01-25',
+    status: 'In Progress',
+    priority: 'High',
+    assignedBy: 'Dr. Rajesh Kumar',
+    createdDate: '2025-01-15'
+  }
+];
+
 // Generic API call function
 async function apiCall<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'API call failed');
-    }
-
-    return {
-      success: true,
-      data: data.data || data,
-      message: data.message,
     };
+
+    const response = await fetch(url, defaultOptions);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('API Error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
+    
+    // Fallback to demo data in development or if API is unavailable
+    if (import.meta.env.MODE === 'development' || error instanceof TypeError) {
+      console.warn('Falling back to demo data');
+      return await simulateApiCall<T>(endpoint, options);
+    }
+    
+    throw error;
   }
 }
 
+// Simulate API calls for demo/development
+async function simulateApiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Return demo data based on endpoint
+  return {
+    success: true,
+    data: {} as T,
+    message: 'Operation completed successfully (demo mode)',
+  };
+}
 // Authentication APIs
 export const authAPI = {
   login: async (credentials: { empId: string; password: string; role: string }): Promise<ApiResponse<User>> => {
-    // Demo implementation - replace with actual API call
     const demoUsers = [
       // Regular employees
       { empId: 'EMP001', password: 'password123', role: 'employee', name: 'Rajesh Kumar' },
@@ -187,7 +305,7 @@ export const authAPI = {
         success: true,
         data: {
           empId: user.empId,
-          role: user.role as 'employee' | 'ld_team' | 'intern',
+          role: user.role as 'employee' | 'ld_team' | 'intern' | 'mentor',
           name: user.name
         }
       };
@@ -247,7 +365,6 @@ export const authAPI = {
 // Intern Management APIs
 export const internAPI = {
   createApplication: async (applicationData: Partial<InternApplication>): Promise<ApiResponse<InternApplication>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const newApplication: InternApplication = {
@@ -269,8 +386,10 @@ export const internAPI = {
       status: 'Submitted',
       submittedDate: new Date().toISOString().split('T')[0],
       lastUpdated: new Date().toISOString().split('T')[0],
-      documents: {}
+      documents: applicationData.documents || {}
     };
+
+    applicationStore.push(newApplication);
 
     return {
       success: true,
@@ -279,35 +398,9 @@ export const internAPI = {
   },
 
   getApplications: async (filters?: { status?: string; department?: string }): Promise<ApiResponse<InternApplication[]>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const demoApplications: InternApplication[] = [
-      {
-        id: '1',
-        internId: 'IOCL-123456',
-        name: 'Rahul Sharma',
-        email: 'rahul.sharma@college.edu',
-        phone: '9876543210',
-        collegeName: 'IIT Delhi',
-        course: 'B.Tech Computer Science',
-        semester: '6th',
-        rollNumber: 'CS2021001',
-        department: 'Engineering',
-        startDate: '2025-01-15',
-        endDate: '2025-03-15',
-        address: 'New Delhi',
-        referredBy: 'Rajesh Kumar',
-        referredByEmpId: 'EMP001',
-        status: 'Approved',
-        submittedDate: '2025-01-15',
-        lastUpdated: '2025-01-18',
-        mentor: 'Dr. Rajesh Kumar',
-        documents: {}
-      }
-    ];
-
-    let filteredApplications = demoApplications;
+    let filteredApplications = [...applicationStore];
     
     if (filters?.status && filters.status !== 'All') {
       filteredApplications = filteredApplications.filter(app => app.status === filters.status);
@@ -323,70 +416,61 @@ export const internAPI = {
     };
   },
 
-  getApplicationById: async (id: string): Promise<ApiResponse<InternApplication>> => {
-    // Demo implementation
+  getPendingApplications: async (): Promise<ApiResponse<InternApplication[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    const pendingApplications = applicationStore.filter(app => app.status === 'Submitted');
+
     return {
       success: true,
-      data: {
-        id,
-        internId: 'IOCL-123456',
-        name: 'Rahul Sharma',
-        email: 'rahul.sharma@college.edu',
-        phone: '9876543210',
-        collegeName: 'IIT Delhi',
-        course: 'B.Tech Computer Science',
-        semester: '6th',
-        rollNumber: 'CS2021001',
-        department: 'Engineering',
-        startDate: '2025-01-15',
-        endDate: '2025-03-15',
-        address: 'New Delhi',
-        referredBy: 'Rajesh Kumar',
-        referredByEmpId: 'EMP001',
-        status: 'Approved',
-        submittedDate: '2025-01-15',
-        lastUpdated: '2025-01-18',
-        mentor: 'Dr. Rajesh Kumar',
-        documents: {}
-      }
+      data: pendingApplications
     };
+  },
+
+  getApplicationById: async (id: string): Promise<ApiResponse<InternApplication>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const application = applicationStore.find(app => app.id === id);
+    
+    if (application) {
+      return {
+        success: true,
+        data: application
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Application not found'
+      };
+    }
   },
 
   updateApplicationStatus: async (id: string, status: string, mentorId?: string): Promise<ApiResponse<InternApplication>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true,
-      data: {
-        id,
-        internId: 'IOCL-123456',
-        name: 'Rahul Sharma',
-        email: 'rahul.sharma@college.edu',
-        phone: '9876543210',
-        collegeName: 'IIT Delhi',
-        course: 'B.Tech Computer Science',
-        semester: '6th',
-        rollNumber: 'CS2021001',
-        department: 'Engineering',
-        startDate: '2025-01-15',
-        endDate: '2025-03-15',
-        address: 'New Delhi',
-        referredBy: 'Rajesh Kumar',
-        referredByEmpId: 'EMP001',
+    const applicationIndex = applicationStore.findIndex(app => app.id === id);
+    
+    if (applicationIndex !== -1) {
+      applicationStore[applicationIndex] = {
+        ...applicationStore[applicationIndex],
         status: status as any,
-        submittedDate: '2025-01-15',
         lastUpdated: new Date().toISOString().split('T')[0],
-        mentor: mentorId,
-        documents: {}
-      }
-    };
+        mentor: mentorId
+      };
+
+      return {
+        success: true,
+        data: applicationStore[applicationIndex]
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Application not found'
+      };
+    }
   },
 
   uploadDocument: async (applicationId: string, documentType: string, file: File): Promise<ApiResponse<{ fileUrl: string }>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     return {
@@ -401,35 +485,11 @@ export const internAPI = {
 // Mentor Management APIs
 export const mentorAPI = {
   getMentors: async (department?: string): Promise<ApiResponse<Mentor[]>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const demoMentors: Mentor[] = [
-      {
-        id: '1',
-        name: 'Dr. Rajesh Kumar',
-        department: 'Engineering',
-        email: 'rajesh.kumar@iocl.in',
-        phone: '9876543210',
-        availability: 'Available',
-        experience: '15 years',
-        mode: 'On-site'
-      },
-      {
-        id: '2',
-        name: 'Ms. Priya Sharma',
-        department: 'Human Resources',
-        email: 'priya.sharma@iocl.in',
-        phone: '9876543211',
-        availability: 'Busy',
-        experience: '12 years',
-        mode: 'Remote'
-      }
-    ];
-
-    let filteredMentors = demoMentors;
+    let filteredMentors = [...mentorStore];
     if (department) {
-      filteredMentors = demoMentors.filter(mentor => mentor.department === department);
+      filteredMentors = mentorStore.filter(mentor => mentor.department === department);
     }
 
     return {
@@ -438,8 +498,20 @@ export const mentorAPI = {
     };
   },
 
+  getAvailableMentors: async (department: string): Promise<ApiResponse<Mentor[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const availableMentors = mentorStore.filter(mentor => 
+      mentor.department === department && mentor.currentInterns < mentor.maxCapacity
+    );
+
+    return {
+      success: true,
+      data: availableMentors
+    };
+  },
+
   createMentor: async (mentorData: Partial<Mentor>): Promise<ApiResponse<Mentor>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const newMentor: Mentor = {
@@ -450,8 +522,12 @@ export const mentorAPI = {
       phone: mentorData.phone || '',
       availability: mentorData.availability || 'Available',
       experience: mentorData.experience || '',
-      mode: mentorData.mode || 'On-site'
+      currentInterns: 0,
+      maxCapacity: mentorData.maxCapacity || 3,
+      internDurations: []
     };
+
+    mentorStore.push(newMentor);
 
     return {
       success: true,
@@ -460,37 +536,55 @@ export const mentorAPI = {
   },
 
   updateMentor: async (id: string, mentorData: Partial<Mentor>): Promise<ApiResponse<Mentor>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true,
-      data: {
-        id,
-        name: mentorData.name || '',
-        department: mentorData.department || '',
-        email: mentorData.email || '',
-        phone: mentorData.phone || '',
-        availability: mentorData.availability || 'Available',
-        experience: mentorData.experience || '',
-        mode: mentorData.mode || 'On-site'
-      }
-    };
+    const mentorIndex = mentorStore.findIndex(mentor => mentor.id === id);
+    
+    if (mentorIndex !== -1) {
+      mentorStore[mentorIndex] = {
+        ...mentorStore[mentorIndex],
+        ...mentorData
+      };
+
+      return {
+        success: true,
+        data: mentorStore[mentorIndex]
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Mentor not found'
+      };
+    }
   },
 
   deleteMentor: async (id: string): Promise<ApiResponse<void>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true
-    };
+    const mentorIndex = mentorStore.findIndex(mentor => mentor.id === id);
+    
+    if (mentorIndex !== -1) {
+      mentorStore.splice(mentorIndex, 1);
+      return {
+        success: true
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Mentor not found'
+      };
+    }
   },
 
-  assignMentor: async (internId: string, mentorId: string, mode: string): Promise<ApiResponse<void>> => {
-    // Demo implementation
+  assignMentor: async (internId: string, mentorId: string): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Update mentor's current intern count
+    const mentorIndex = mentorStore.findIndex(mentor => mentor.id === mentorId);
+    if (mentorIndex !== -1) {
+      mentorStore[mentorIndex].currentInterns += 1;
+    }
+
     return {
       success: true
     };
@@ -500,27 +594,11 @@ export const mentorAPI = {
 // Task Management APIs
 export const taskAPI = {
   getTasks: async (internId?: string): Promise<ApiResponse<Task[]>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const demoTasks: Task[] = [
-      {
-        id: '1',
-        internId: 'IOCL-123456',
-        internName: 'Rahul Sharma',
-        title: 'Pipeline Safety Analysis',
-        description: 'Analyze safety protocols for oil pipeline systems',
-        dueDate: '2025-01-25',
-        status: 'In Progress',
-        priority: 'High',
-        assignedBy: 'Dr. Rajesh Kumar',
-        createdDate: '2025-01-15'
-      }
-    ];
-
-    let filteredTasks = demoTasks;
+    let filteredTasks = [...taskStore];
     if (internId) {
-      filteredTasks = demoTasks.filter(task => task.internId === internId);
+      filteredTasks = taskStore.filter(task => task.internId === internId);
     }
 
     return {
@@ -529,8 +607,18 @@ export const taskAPI = {
     };
   },
 
+  getTasksByMentor: async (mentorName: string): Promise<ApiResponse<Task[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const mentorTasks = taskStore.filter(task => task.assignedBy === mentorName);
+
+    return {
+      success: true,
+      data: mentorTasks
+    };
+  },
+
   createTask: async (taskData: Partial<Task>): Promise<ApiResponse<Task>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const newTask: Task = {
@@ -546,6 +634,8 @@ export const taskAPI = {
       createdDate: new Date().toISOString().split('T')[0]
     };
 
+    taskStore.push(newTask);
+
     return {
       success: true,
       data: newTask
@@ -553,70 +643,52 @@ export const taskAPI = {
   },
 
   updateTaskStatus: async (id: string, status: string): Promise<ApiResponse<Task>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true,
-      data: {
-        id,
-        internId: 'IOCL-123456',
-        internName: 'Rahul Sharma',
-        title: 'Pipeline Safety Analysis',
-        description: 'Analyze safety protocols for oil pipeline systems',
-        dueDate: '2025-01-25',
-        status: status as any,
-        priority: 'High',
-        assignedBy: 'Dr. Rajesh Kumar',
-        createdDate: '2025-01-15'
-      }
-    };
+    const taskIndex = taskStore.findIndex(task => task.id === id);
+    
+    if (taskIndex !== -1) {
+      taskStore[taskIndex].status = status as any;
+
+      return {
+        success: true,
+        data: taskStore[taskIndex]
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Task not found'
+      };
+    }
   },
 
   deleteTask: async (id: string): Promise<ApiResponse<void>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true
-    };
+    const taskIndex = taskStore.findIndex(task => task.id === id);
+    
+    if (taskIndex !== -1) {
+      taskStore.splice(taskIndex, 1);
+      return {
+        success: true
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Task not found'
+      };
+    }
   },
 };
 
 // Project Submission APIs
 export const projectAPI = {
   getSubmissions: async (internId?: string): Promise<ApiResponse<ProjectSubmission[]>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const demoSubmissions: ProjectSubmission[] = [
-      {
-        id: '1',
-        internId: 'IOCL-123456',
-        internName: 'Rahul Sharma',
-        department: 'Engineering',
-        projectTitle: 'Pipeline Safety Analysis System',
-        description: 'Comprehensive analysis of pipeline safety protocols',
-        submissionDate: '2025-01-18',
-        status: 'Under Review',
-        fileUrl: '/reports/pipeline-safety-analysis.pdf',
-      },
-      {
-        id: '2',
-        internId: 'IOCL-123459',
-        internName: 'Neha Gupta',
-        department: 'Engineering',
-        projectTitle: 'Environmental Impact Assessment',
-        description: 'Assessment of environmental impact of refinery operations',
-        submissionDate: '2025-01-19',
-        status: 'Submitted',
-        fileUrl: '/reports/environmental-impact.pdf'
-      }
-    ];
-
-    let filteredSubmissions = demoSubmissions;
+    let filteredSubmissions = [...projectStore];
     if (internId) {
-      filteredSubmissions = demoSubmissions.filter(submission => submission.internId === internId);
+      filteredSubmissions = projectStore.filter(submission => submission.internId === internId);
     }
 
     return {
@@ -625,8 +697,18 @@ export const projectAPI = {
     };
   },
 
+  getSubmissionsByMentor: async (mentorId: string): Promise<ApiResponse<ProjectSubmission[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const mentorSubmissions = projectStore.filter(submission => submission.mentorId === mentorId);
+
+    return {
+      success: true,
+      data: mentorSubmissions
+    };
+  },
+
   createSubmission: async (submissionData: Partial<ProjectSubmission>): Promise<ApiResponse<ProjectSubmission>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const newSubmission: ProjectSubmission = {
@@ -638,8 +720,11 @@ export const projectAPI = {
       description: submissionData.description,
       submissionDate: new Date().toISOString().split('T')[0],
       status: 'Submitted',
-      fileUrl: submissionData.fileUrl
+      fileUrl: submissionData.fileUrl,
+      mentorId: submissionData.mentorId
     };
+
+    projectStore.push(newSubmission);
 
     return {
       success: true,
@@ -648,7 +733,6 @@ export const projectAPI = {
   },
 
   uploadProjectFile: async (submissionId: string, file: File): Promise<ApiResponse<{ fileUrl: string }>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     return {
@@ -660,31 +744,34 @@ export const projectAPI = {
   },
 
   updateSubmissionStatus: async (id: string, status: string, feedback?: string, grade?: string): Promise<ApiResponse<ProjectSubmission>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    return {
-      success: true,
-      data: {
-        id,
-        internId: 'IOCL-123456',
-        internName: 'Rahul Sharma',
-        department: 'Engineering',
-        projectTitle: 'Pipeline Safety Analysis System',
-        submissionDate: '2025-01-18',
+    const submissionIndex = projectStore.findIndex(submission => submission.id === id);
+    
+    if (submissionIndex !== -1) {
+      projectStore[submissionIndex] = {
+        ...projectStore[submissionIndex],
         status: status as any,
-        fileUrl: '/reports/pipeline-safety-analysis.pdf',
         feedback,
         grade
-      }
-    };
+      };
+
+      return {
+        success: true,
+        data: projectStore[submissionIndex]
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Submission not found'
+      };
+    }
   },
 };
 
 // Document Generation APIs
 export const documentAPI = {
   generateApprovalLetter: async (applicationId: string): Promise<ApiResponse<{ documentUrl: string }>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     return {
@@ -696,7 +783,6 @@ export const documentAPI = {
   },
 
   generateCompletionCertificate: async (submissionId: string): Promise<ApiResponse<{ documentUrl: string }>> => {
-    // Demo implementation
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     return {
@@ -743,4 +829,12 @@ export const getPriorityColor = (priority: string): string => {
     'Low': 'bg-green-100 text-green-800',
   };
   return priorityColors[priority] || 'bg-gray-100 text-gray-800';
+};
+
+// Export data stores for direct access (demo purposes only)
+export const dataStores = {
+  applications: applicationStore,
+  mentors: mentorStore,
+  projects: projectStore,
+  tasks: taskStore
 };

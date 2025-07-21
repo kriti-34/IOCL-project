@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:prod": "tsc && vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "npm run build && npm run preview",
+    "type-check": "tsc --noEmit",
+    "build:analyze": "npm run build && npx vite-bundle-analyzer dist/stats.html"
   },
   "dependencies": {
     "axios": "^1.10.0",

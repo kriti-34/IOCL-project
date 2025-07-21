@@ -123,17 +123,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
               <button
                 type="button"
-                onClick={() => setSelectedRole('intern')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${
-                  selectedRole === 'intern'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Intern
-              </button>
-              <button
-                type="button"
                 onClick={() => setSelectedRole('employee')}
                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${
                   selectedRole === 'employee'
@@ -165,6 +154,17 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
               >
                 Mentor
               </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('intern')}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  selectedRole === 'intern'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Intern
+              </button>
             </div>
           </div>
 
@@ -182,10 +182,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
                   onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={
-                    selectedRole === 'intern' ? 'Enter Intern ID (e.g., IOCL-123456)' :
                     selectedRole === 'employee' ? 'Enter Employee ID (e.g., EMP001)' :
                     selectedRole === 'admin' ? 'Enter Admin ID (e.g., IOCLAdmin)' :
-                    'Enter Mentor ID (e.g., MENTOR001)'
+                    selectedRole === 'mentor' ? 'Enter Mentor ID (e.g., MENTOR001)' :
+                    'Enter Intern ID (e.g., IOCL-123456)'
                   }
                   required
                 />
@@ -251,16 +251,16 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
                   <p><strong>Admin:</strong> L&DAdmin / admin123</p>
                 </div>
               )}
-              {selectedRole === 'intern' && (
-                <div className="bg-gray-50 p-2 rounded">
-                  <p><strong>Intern:</strong> IOCL-123456 / intern123</p>
-                  <p><strong>Intern:</strong> IOCL-123457 / intern123</p>
-                </div>
-              )}
               {selectedRole === 'mentor' && (
                 <div className="bg-gray-50 p-2 rounded">
                   <p><strong>Mentor:</strong> MENTOR001 / mentor123</p>
                   <p><strong>Mentor:</strong> MENTOR002 / mentor123</p>
+                </div>
+              )}
+              {selectedRole === 'intern' && (
+                <div className="bg-gray-50 p-2 rounded">
+                  <p><strong>Intern:</strong> IOCL-123456 / intern123</p>
+                  <p><strong>Intern:</strong> IOCL-123457 / intern123</p>
                 </div>
               )}
             </div>
